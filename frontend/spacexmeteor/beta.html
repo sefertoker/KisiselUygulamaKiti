@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="images/roket.ico" />
+    <title>Uzaydan Kaçış</title>
+    <style>
+        @import url('Pixel.ttf');
+        @font-face {
+            font-family: pixel;
+            font-style: normal;
+            font-weight: 400;
+            src: local('Pixel'), url('Pixel.ttf') format('woff');
+        }
+
+        body {
+            overflow: hidden;
+            background-image: url(images/bodybg.png);
+            background-size: cover;
+            margin: 0;
+            padding: 0;
+        }
+
+        canvas {
+            margin-top: 6%;
+            width: 55%;
+            background-image: url('images/bga.gif');
+            background-size: cover;
+        }
+
+        #tekrarOynaBtn {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: transparent;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        #tekrarOynaBtn:hover {
+            opacity: 0.6;
+        }
+
+        #baslatBtn {
+            width: 10%;
+            height: 10%;
+            position: absolute;
+            top: 50%;
+            left: 45%;
+            transform: translate(-50%, -50%);
+            cursor: pointer;
+        }
+
+        #baslatBtn:hover {
+            opacity: 0.6;
+        }
+
+        .backbutton {
+            position: absolute;
+            margin-left: 2%;
+            text-decoration: none;
+            color: white;
+            font-size: 30px;
+            background: rgb(160, 32, 240, 0.4);
+            padding: 1%;
+            border-radius: 0px 0px 100px 100px;
+        }
+
+        .backbutton:hover {
+            font-size: 50px;
+            background: rgb(160, 32, 240, 0.8);
+        }
+    </style>
+</head>
+<body>
+
+
+    <center><img src="images/frame.png" style="position: absolute; width: 60%; height: 64%; top: 12%; left: 20.1%;"></center>
+    <center><canvas id="canvas" width="800" height="450"></canvas></center>
+    <center><a id="tekrarOynaBtn"><img src="images/tekrar.fw.png" width="80%"></a></center>
+    <center><a id="baslatBtn"><img src="images/basla.fw.png" width="200%"></a></center>
+    <audio id="gameMusic" src="sounds/gamemusic.mp3"></audio>
+    <audio id="boom" src="sounds/boom.mp3"></audio>
+
+    <script>
+
+        var area = document.getElementById("canvas");
+        var ctx = area.getContext("2d");
+        var oyuncuImg = new Image();
+        oyuncuImg.src = 'images/roket.png';
+        var meteorImg = new Image();
+        meteorImg.src = 'images/meteor.png';
+        var kalpImg = new Image();
+        kalpImg.src = 'images/kalp.png';
+
+
+        var oyuncu = {
+            x: 30,
+            y: area.height / 2,
+            wid: 70,
+            hei: 50,
+            speed: 5,
+            can: 3
+        };
+
+
+
+
+        var meteors = [], dusmanHizi = 3, puan = 0, enYuksekPuan = 0, oyunBitti = false;
+
+
+
+        document.getElementById("baslatBtn").addEventListener("click", function () {
+            document.getElementById("baslatBtn").style.display = "none";
+            document.getElementById("gameMusic").play();
+            main();
+        });
+
+
+
+
+
+        var tuslar = { yukarı: false, aşağı: false, sağ: false, sol: false };
+        document.addEventListener("keydown", function (event) {
+            switch (event.keyCode) {
+                case 37: tuslar.sol = true; break;
+                case 38: tuslar.yukarı = true; break;
+                case 39: tuslar.sağ = true; break;
+                case 40: tuslar.aşağı = true; break;
+            }
+        });
+
+        document.addEventListener("keyup", function (event) {
+            switch (event.keyCode) {
+                case 37: tuslar.sol = false; break;
+                case 38: tuslar.yukarı = false; break;
+                case 39: tuslar.sağ = false; break;
+                case 40: tuslar.aşağı = false; break;
+            }
+        });
+
+
+
+
+        document.getElementById("tekrarOynaBtn").addEventListener("click", function () {
+            if (oyunBitti) {
+                oyuncu.x = 80;
+                oyuncu.y = 200;
+                puan = 0;
+                oyunBitti = false;
+                meteors = [];
+                oyuncu.can = 3;
+                ds = 0.030;
+                document.getElementById("gameMusic").play();
+                gameMusic.currentTime = 0;
+                document.getElementById("tekrarOynaBtn").style.display = "none";
+                main();
+            }
+        });
+
+
+
+        function dusmanOlustur() {
+            var dusman = {
+                x: area.width,
+                y: Math.random() * area.height,
+                wid: 80,
+                hei: 35
+            };
+            meteors.push(dusman);
+        }
+
+
+
+        function main() {
+            ctx.clearRect(0, 0, area.width, area.height);
+            ctx.drawImage(oyuncuImg, oyuncu.x, oyuncu.y, oyuncu.wid, oyuncu.hei);
+
+
+
+            for (var i = 0; i < meteors.length; i++) {
+                ctx.drawImage(meteorImg, meteors[i].x, meteors[i].y, meteors[i].wid, meteors[i].hei);
+
+                meteors[i].x -= dusmanHizi;
+                
+
+                if (meteors[i].x < 0) {
+                    meteors.splice(i, 1);
+                    puan++;
+                }
+
+
+                if (oyuncu.x < meteors[i].x + meteors[i].wid &&
+                    oyuncu.x + oyuncu.wid > meteors[i].x &&
+                    oyuncu.y < meteors[i].y + meteors[i].hei &&
+                    oyuncu.y + oyuncu.hei > meteors[i].y) {
+
+                    meteors.splice(i, 1);
+                    document.getElementById("boom").play();
+                    oyuncu.can--;
+
+
+
+                    if (oyuncu.can <= 0) {
+                        oyunBitti = true;
+                        document.getElementById("tekrarOynaBtn").style.display = "block";
+                        document.getElementById("gameMusic").pause();
+                        if (puan > enYuksekPuan) {
+                            enYuksekPuan = puan;
+                        }
+                    }
+                }
+            }
+
+
+
+
+            if (tuslar.yukarı && oyuncu.y > 0) {
+                oyuncu.y -= oyuncu.speed;
+            }
+            if (tuslar.aşağı && oyuncu.y < area.height - oyuncu.hei) {
+                oyuncu.y += oyuncu.speed;
+            }
+            if (tuslar.sağ && oyuncu.x < area.width - oyuncu.wid) {
+                oyuncu.x += oyuncu.speed;
+            }
+            if (tuslar.sol && oyuncu.x > 0) {
+                oyuncu.x -= oyuncu.speed;
+            }
+
+
+
+
+            let ds = 0.030;
+            let newpuan = Math.floor(puan / 10);
+
+            if (puan >= newpuan * 10 && newpuan !== 0) {
+                ds += 0.005;
+            }
+
+
+
+            if (Math.random() < ds) {
+                dusmanOlustur();
+            }
+
+
+            ctx.fillStyle = "white";
+            ctx.font = "20px 'Pixel', sans-serif";
+            ctx.fillText("Puan: " + puan, 20, 30);
+            ctx.fillText("En Yuksek Puan: " + enYuksekPuan, 595, 30);
+
+
+
+            for (var j = 0; j < oyuncu.can; j++) {
+                ctx.drawImage(kalpImg, 20 + j * 40, area.height - 50, 35, 35);
+            }
+
+
+            if (!oyunBitti) {
+                requestAnimationFrame(main);
+            }
+        }
+    </script>
+</body>
+</html>

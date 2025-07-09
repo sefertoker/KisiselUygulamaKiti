@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kayıt Ol</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/png" href="images/logo.fw.png">
+
+    <style>
+        .auth-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            background: var(--primary-bg);
+        }
+
+        .auth-box {
+            background: var(--widget-bg);
+            border: 1px solid var(--widget-border);
+            border-radius: 12px;
+            padding: 2rem;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .auth-header h1 {
+            color: var(--accent-color);
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-group label {
+            color: var(--primary-text);
+            font-weight: 500;
+        }
+
+        .form-group input {
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--widget-border);
+            border-radius: 8px;
+            background: var(--widget-bg);
+            color: var(--primary-text);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.1);
+        }
+
+        .auth-button {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 1rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+        }
+
+        .auth-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(var(--accent-rgb), 0.2);
+        }
+
+        .auth-links {
+            text-align: center;
+            margin-top: 1.5rem;
+        }
+
+        .auth-links a {
+            color: var(--accent-color);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .auth-links a:hover {
+            color: var(--accent-hover);
+        }
+
+        /* Tema değiştirme butonu stilleri */
+        .theme-toggle-container {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+        }
+
+        .theme-toggle {
+            width: 50px;
+            height: 24px;
+            background-color: var(--widget-bg);
+            border: 1px solid var(--widget-border);
+            border-radius: 12px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .theme-toggle-slider {
+            width: 20px;
+            height: 20px;
+            background-color: var(--accent-color);
+            border-radius: 50%;
+            position: absolute;
+            top: 1px;
+            left: 1px;
+            transition: all 0.3s ease;
+        }
+
+        body.dark-theme .theme-toggle-slider {
+            transform: translateX(26px);
+        }
+    </style>
+</head>
+<body>
+    <div class="theme-toggle-container">
+        <div class="theme-toggle">
+            <div class="theme-toggle-slider"></div>
+        </div>
+    </div>
+
+    <div class="auth-container">
+        <div class="auth-box">
+            <div class="auth-header">
+                <h1>Kayıt Ol</h1>
+                <p>Yeni bir hesap oluşturun</p>
+            </div>
+            <form class="auth-form" id="registerForm">
+                <div class="form-group">
+                    <label for="name">Ad Soyad</label>
+                    <input type="text" id="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Şifre</label>
+                    <input type="password" id="password" required>
+                </div>
+                <div class="form-group">
+                    <label for="confirmPassword">Şifre Tekrar</label>
+                    <input type="password" id="confirmPassword" required>
+                </div>
+                <button type="submit" class="auth-button">Kayıt Ol</button>
+            </form>
+            <div class="auth-links">
+                <p>Zaten hesabınız var mı? <a href="login.html">Giriş Yap</a></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tema değiştirme işlevselliği
+        const body = document.body;
+        const themeToggle = document.querySelector('.theme-toggle');
+
+        function toggleTheme() {
+            body.classList.toggle('dark-theme');
+            localStorage.setItem('app_theme', body.classList.contains('dark-theme'));
+        }
+
+        themeToggle.addEventListener('click', toggleTheme);
+
+        // Kaydedilmiş temayı yükle
+        if (localStorage.getItem('app_theme') === 'true') {
+            body.classList.add('dark-theme');
+        }
+
+        // Form gönderme işlevselliği
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const name = document.getElementById('name').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            if (password !== confirmPassword) {
+                alert('Şifreler eşleşmiyor!');
+                return;
+            }
+
+            fetch('http://localhost:8080/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    username: name,
+                    password: password
+                })
+            })
+            .then(res => res.text())
+            .then(data => {
+                alert(data);
+                if (data.includes("Kayıt başarılı")) {
+                    window.location.href = 'login.html';
+                }
+            })
+            .catch(err => {
+                alert("Kayıt sırasında hata oluştu: " + err);
+            });
+        });
+    </script>
+</body>
+</html>
